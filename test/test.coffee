@@ -18,6 +18,17 @@ JcsConstructor = require "../index"
 staticRoot = path.join __dirname, "public"
 sourceRoot = path.join __dirname, "views"
 
+# Change the file timestamp.
+touch = (f, d) ->
+    d = d || new Date
+    fs.utimesSync f, d, d
+
+mockReq = (url, method) ->
+    method = method || 'GET'
+    return
+        url: url
+        method: method
+
 
 describe "The test for jcs middleware", ->
     beforeEach (done)->
@@ -30,10 +41,10 @@ describe "The test for jcs middleware", ->
             logger.error err
             throw err
 
-    describe "# General test", ->
-        logger.info fs.statSync(__filename).mtime.constructor
-        logger.info __dirname
-        logger.info url.parse("http://example.com/prefix/coffee/test.js").pathname
-        logger.info "staticRoot=", staticRoot
-        logger.info "sourceRoot=", sourceRoot
+    describe "# Basic test", ->
+        jcs = JcsConstructor
+           staticRoot: staticRoot
+           jadeSrc: path.join sourceRoot, 'views'
+           jadeDst: path.join staticRoot, 'html'
+
 
