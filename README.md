@@ -62,6 +62,7 @@ Usage
      jadeDst        Destination directory where the .js files are stored.
      jadeStatics    Hash map used to generate jade pages.
 
+If any of the **xxxSrc** options is ommit, that feature will be turned off.
 
 ## File Path
 
@@ -82,14 +83,13 @@ goes to
 
     /path/to/yourapp/public/XXX
 
-Then, you have folder 
+Then, you have folder for stylus source files,
 
     /path/to/yourapp/stylus
 
-for stylus source files, and you want put the generated css files be put into
-directory:
+and you want put the generated css files be put into directory:
 
-    /path/to/yourapp/public/css/
+    /path/to/yourapp/public/css
 
 So that anyone can access those css files from url 
 
@@ -97,10 +97,10 @@ So that anyone can access those css files from url
 
 In this scenario:
 
-* urlBase is    */yourapp*
-* staticRoot is */path/to/yourapp/public*
-* stylusSrc is  */path/to/yourapp/stylus*
-* StylusDst is  */path/to/yourapp/public/css*
+* **urlBase** is    */yourapp*
+* **staticRoot** is */path/to/yourapp/public*
+* **stylusSrc** is  */path/to/yourapp/stylus*
+* **stylusDst** is  */path/to/yourapp/public/css*
 
 for example:
 
