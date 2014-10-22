@@ -26,6 +26,11 @@
         "uglifyjs": "~2.3.6",
         "stylus": "~0.42.3"
     },
+    "devDependencies": {
+        "rimraf": "*",
+        "mocha" : "*",
+        "assert": "*"
+    },
     "author": {
         "name": "Wu Yuntao",
         "email": "wu-yuntao@qq.com"
