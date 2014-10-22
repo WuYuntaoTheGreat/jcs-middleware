@@ -1,3 +1,5 @@
+<!-- vim: set et ai nu ts=4 sw=4 cc=80: -->
+
 jcs-middleware
 ==============
 
@@ -25,8 +27,10 @@ Usage
     // Coffee-script options:
      'coffeeSrc'     Source directory used to find .coffee files.
      'coffeeDst'     Destination directory where the .js files are stored.
-     'bare'          Compile JavaScript without the top-level function safty wrapper.
-     'encodeSrc'     Encode CoffeeScript source file as base64 comment in compiled JavaScript.
+     'bare'          Compile JavaScript without the top-level function safty
+                     wrapper.
+     'encodeSrc'     Encode CoffeeScript source file as base64 comment in
+                     compiled JavaScript.
 
     // Stylus options:
      'stylusSrc'     Source directory used to find .styl files.
