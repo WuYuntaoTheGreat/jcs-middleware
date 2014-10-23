@@ -15,8 +15,9 @@ rmdir   = require "rimraf"
 
 JcsConstructor = require "../index"
 
-staticRoot = path.join __dirname, "public"
-sourceRoot = path.join __dirname, "views"
+STATICROOT = path.join __dirname, "public"
+SOURCEROOT = path.join __dirname, "views"
+EXAMPLESITE = "http://yourdomain.com"
 
 # Change the file timestamp.
 touch = (f, d) ->
@@ -25,26 +26,34 @@ touch = (f, d) ->
 
 mockReq = (url, method) ->
     method = method || 'GET'
-    return
+    {
         url: url
         method: method
+    }
 
 
 describe "The test for jcs middleware", ->
-    beforeEach (done)->
-        logger.info "Delete & recreate static root..."
-        rmdir staticRoot, (err)->
-            logger.error err
-            throw err
+    beforeEach ()->
+        logger.info "Delete static root..."
+        rmdir STATICROOT, (err)->
+            if err
+                logger.error err
+                throw err
 
-        mkdirp staticRoot, (err)->
-            logger.error err
-            throw err
+        logger.info "Re-create static root..."
+        mkdirp STATICROOT, (err)->
+            if err
+                logger.error err
+                throw err
 
     describe "# Basic test", ->
         jcs = JcsConstructor
-           staticRoot: staticRoot
-           jadeSrc: path.join sourceRoot, 'views'
-           jadeDst: path.join staticRoot, 'html'
+           staticRoot: STATICROOT
+           jadeSrc: path.join SOURCEROOT, 'views'
+           jadeDst: path.join STATICROOT, 'html'
 
+        it "'POST' method should return next directly, without error", (done) ->
+            jcs mockReq(EXAMPLESITE + '/notexist', 'POST'), null, (err) ->
+                assert.strictEqual err, undefined
+                done()
 
