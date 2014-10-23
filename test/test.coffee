@@ -33,23 +33,23 @@ mockReq = (url, method) ->
 
 
 describe "The test for jcs middleware", ->
-    beforeEach ()->
-        logger.info "Delete static root..."
+    beforeEach (done)->
         rmdir STATICROOT, (err)->
             if err
                 logger.error err
                 throw err
-
-        logger.info "Re-create static root..."
-        mkdirp STATICROOT, (err)->
-            if err
-                logger.error err
-                throw err
+            else
+                mkdirp STATICROOT, (err)->
+                    if err
+                        logger.error err
+                        throw err
+                    else
+                        done()
 
     describe "# Basic test", ->
         jcs = JcsConstructor
            staticRoot: STATICROOT
-           jadeSrc: path.join SOURCEROOT, 'views'
+           jadeSrc: path.join SOURCEROOT, 'jade'
            jadeDst: path.join STATICROOT, 'html'
 
         it "'POST' method should return next directly, without error", (done) ->
@@ -57,3 +57,13 @@ describe "The test for jcs middleware", ->
                 assert.strictEqual err, undefined
                 done()
 
+        it "Non exist jade should return next directly, without error", (done) ->
+            jcs mockReq(EXAMPLESITE + '/html/notexist.html'), null, (err) ->
+                assert.strictEqual err, undefined
+                done()
+
+        it "'a.jade' should be compiled to 'a.html'", (done) ->
+            jcs mockReq(EXAMPLESITE + '/html/a.html'), null, (err) ->
+                assert.strictEqual err, undefined
+                assert.ok fs.existsSync path.join STATICROOT, 'html', 'a.html'
+                done()
