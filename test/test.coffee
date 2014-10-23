@@ -87,6 +87,9 @@ describe "The test for jcs middleware", ->
                 assert.ok fs.existsSync outPath
                 outTime = fs.statSync(outPath).mtime
                 jcs mockReq(outUrl), null, (err) ->
+                    if err
+                        logger.error err
+                        logger.error err.stack
                     assert.ok !err
                     assert.ok fs.existsSync outPath
                     assert.notStrictEqual fs.statSync(outPath).mtime, outTime
