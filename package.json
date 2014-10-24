@@ -19,7 +19,6 @@
     ],
     "dependencies": {
         "jade": "~1.7.0",
-        "jade-inheritance": ">= 0.1.0",
         "nice-logger": ">= 0.2.2",
         "coffee-script": ">= 1.6.0",
         "mkdirp": ">= 0.3.1",

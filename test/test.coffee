@@ -14,7 +14,7 @@ url     = require "url"
 rmdir   = require "rimraf"
 
 require('nice-logger').init
-    level: 'trace'
+    level: 'info'
     format:
         dateTime: "HH:mm:ss.SSS"
         message: "%d [%t] - %m"
@@ -38,16 +38,16 @@ mockReq = (url, method) ->
     }
 
 
-describe "The test for jcs middleware", ->
+describe "THE TEST FOR JCS MIDDLEWARE", ->
     beforeEach (done)->
-        logger.info "deleting public folder..."
+        #logger.info "deleting public folder..."
         rmdir STATICROOT, (err)->
             if err
                 logger.error err
                 #The folder may not exist.
                 # throw err
                 #
-            logger.info "creating public folder..."
+            #logger.info "creating public folder..."
             mkdirp STATICROOT, (err)->
                 if err
                     logger.error err
@@ -55,7 +55,7 @@ describe "The test for jcs middleware", ->
                 else
                     done()
 
-    describe "Basic test", ->
+    describe "Test stylus middleware", ->
         jcs = JcsConstructor
            staticRoot: STATICROOT
            stylusSrc: path.join SOURCEROOT, 'stylus'
@@ -70,7 +70,7 @@ describe "The test for jcs middleware", ->
                 assert.ok !err
                 done()
 
-        it "#2 Non exist jade should return next directly, without error", (done) ->
+        it "#2 Non exist stylus should return next directly, without error", (done) ->
             jcs mockReq(EXAMPLESITE + '/css/notexist.css'), null, (err) ->
                 assert.ok !err
                 done()
@@ -120,6 +120,147 @@ describe "The test for jcs middleware", ->
 
         outPathB = path.join STATICROOT, 'css', 'b.css'
         outUrlB = EXAMPLESITE + '/css/b.css'
+
+        it "#6 touch included file, should compile", (done) ->
+            this.timeout 3000
+
+            jcs mockReq(outUrlB), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPathB
+                outTime = fs.statSync(outPathB).mtime
+
+                setTimeout ()->
+                    logger.debug "src time before=", fs.statSync(srcPath).mtime
+                    touch srcPath
+                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+
+                    jcs mockReq(outUrlB), null, (err) ->
+                        assert.ok !err
+                        assert.ok fs.existsSync outPathB
+                        outTime2 = fs.statSync(outPathB).mtime
+                        logger.debug "t1=%s", outTime
+                        logger.debug "t2=%s", outTime2
+                        assert.ok outTime2 > outTime
+                        done()
+                , 1234
+
+    describe "Test coffee middleware", ->
+        jcs = JcsConstructor
+           staticRoot: STATICROOT
+           coffeeSrc: path.join SOURCEROOT, 'coffee'
+           coffeeDst: path.join STATICROOT, 'js'
+
+        srcPath = path.join SOURCEROOT, 'coffee', 'a.coffee'
+        outPath = path.join STATICROOT, 'js', 'a.js'
+        outUrl = EXAMPLESITE + '/js/a.js'
+
+
+        it "#1 Non exist coffee should return next directly, without error", (done) ->
+            jcs mockReq(EXAMPLESITE + '/js/notexist.js'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#2 'a.coffee' should be compiled to 'a.js'", (done) ->
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                done()
+
+        it "#3 do twice without touch source, should not compile", (done) ->
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                outTime = fs.statSync(outPath).mtime
+                jcs mockReq(outUrl), null, (err) ->
+                    if err
+                        logger.error err
+                        logger.error err.stack
+                    assert.ok !err
+                    assert.ok fs.existsSync outPath
+                    assert.notStrictEqual fs.statSync(outPath).mtime, outTime
+                    done()
+
+        it "#4 do twice with touch source, should compile", (done) ->
+            this.timeout 3000
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                outTime = fs.statSync(outPath).mtime
+
+                setTimeout ()->
+                    logger.debug "src time before=", fs.statSync(srcPath).mtime
+                    touch srcPath
+                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+
+                    jcs mockReq(outUrl), null, (err) ->
+                        assert.ok !err
+                        assert.ok fs.existsSync outPath
+                        outTime2 = fs.statSync(outPath).mtime
+                        logger.debug "t1=%s", outTime
+                        logger.debug "t2=%s", outTime2
+                        assert.ok outTime2 > outTime
+                        done()
+                , 1234
+
+    describe "Test jade middleware", ->
+        jcs = JcsConstructor
+           staticRoot: STATICROOT
+           jadeSrc: path.join SOURCEROOT, 'jade'
+           jadeDst: path.join STATICROOT, 'html'
+
+        srcPath = path.join SOURCEROOT, 'jade', 'a.jade'
+        outPath = path.join STATICROOT, 'html', 'a.html'
+        outUrl = EXAMPLESITE + '/html/a.html'
+
+        it "#1 Non exist jade should return next directly, without error", (done) ->
+            jcs mockReq(EXAMPLESITE + '/html/notexist.html'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#2 'a.jade' should be compiled to 'a.html'", (done) ->
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                done()
+
+        it "#3 do twice without touch source, should not compile", (done) ->
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                outTime = fs.statSync(outPath).mtime
+                jcs mockReq(outUrl), null, (err) ->
+                    if err
+                        logger.error err
+                        logger.error err.stack
+                    assert.ok !err
+                    assert.ok fs.existsSync outPath
+                    assert.notStrictEqual fs.statSync(outPath).mtime, outTime
+                    done()
+
+        it "#4 do twice with touch source, should compile", (done) ->
+            this.timeout 3000
+            jcs mockReq(outUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outPath
+                outTime = fs.statSync(outPath).mtime
+
+                setTimeout ()->
+                    logger.debug "src time before=", fs.statSync(srcPath).mtime
+                    touch srcPath
+                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+
+                    jcs mockReq(outUrl), null, (err) ->
+                        assert.ok !err
+                        assert.ok fs.existsSync outPath
+                        outTime2 = fs.statSync(outPath).mtime
+                        logger.debug "t1=%s", outTime
+                        logger.debug "t2=%s", outTime2
+                        assert.ok outTime2 > outTime
+                        done()
+                , 1234
+
+        outPathB = path.join STATICROOT, 'html', 'b.html'
+        outUrlB = EXAMPLESITE + '/html/b.html'
 
         it "#6 touch included file, should compile", (done) ->
             this.timeout 3000
