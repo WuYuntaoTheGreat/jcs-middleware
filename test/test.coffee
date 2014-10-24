@@ -351,3 +351,31 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
                         done()
                 , 1158
 
+        it "#9 test compress", (done) ->
+            jcs = JcsConstructor
+               staticRoot: STATICROOT
+               force: true
+               compress: true
+               urlBase:   'prefix'
+               jadeSrc: path.join SOURCEROOT, 'jade'
+               jadeDst: path.join STATICROOT, 'html'
+
+            jcs mockReq(outHtmlUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outHtmlPath
+                size1 = fs.statSync(outHtmlPath).size
+
+                jcs = JcsConstructor
+                   staticRoot: STATICROOT
+                   force: true
+                   compress: false
+                   urlBase:   'prefix'
+                   jadeSrc: path.join SOURCEROOT, 'jade'
+                   jadeDst: path.join STATICROOT, 'html'
+
+                jcs mockReq(outHtmlUrl), null, (err) ->
+                    assert.ok !err
+                    assert.ok fs.existsSync outHtmlPath
+                    size2 = fs.statSync(outHtmlPath).size
+                    assert.ok size2 > size1
+                    done()
