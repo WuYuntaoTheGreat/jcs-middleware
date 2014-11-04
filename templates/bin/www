@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-# vim: set ai et nu ts=4 sw=4 cc=100:
-var appConfig = require('../appConfig')
-  , debug = require('debug')(appConfig.appName)
+// vim: set ai et nu ts=4 sw=4 cc=100 ft=javascript:
+var pkg = require('../package.json')
+  , debug = require('debug')(pkg.appName)
   , app = require('../app')
   ;
 

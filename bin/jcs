@@ -10,35 +10,48 @@ var program = require('commander')
   , fs      = require('fs')
   , path    = require('path')
   , pkg     = require('../package.json')
+  , templPkg= require('../templates/package.json') 
   ;
 
 program
     .version(pkg.version)
     .usage('[options] [dir]')
-    .option('-f, --force', 'force copy template files.')
+    .option('-f, --force', 'Force copy template files.')
+    .option('-n, --name', 'The name of the web application, default is folder name.')
     .parse(process.argv)
     ;
 
-var destPath    = program.args.shift() || '.'
+var destPath    = path.resolve(program.args.shift() || '.')
   , templPath   = path.join(__dirname, '..', 'templates')
-  , appName     = path.basename(path.resolve(destPath))
+  , appName     = process.name || path.basename(destPath)
 //  , eol         = os.EOL
   ;
 
 // Generate and write the appConfig.js
 function initAppConfig(){
+    templPkg.name = appName;
+    fs.writeFile(
+        path.join(destPath, 'package.json'),
+        JSON.stringify(templPkg, null, '    '));
 }
 
 // Copy the template to destination folder.
 function createApp(){
-    ncp(templPath, destPath, function(err){
-        if (err){
-            console.error(err);
-            process.exit(1);
-        } else {
-            initAppConfig();
+    ncp(templPath, destPath, 
+        { 
+            filter: function(f){
+                return !/\.swp$/.test(f) && !/package.json$/.test(f);
+            }
+        },
+        function(err){
+            if (err){
+                console.error(err);
+                process.exit(1);
+            } else {
+                initAppConfig();
+            }
         }
-    });
+    );
 }
 
 // Check dest path exist and is empty.
