@@ -379,3 +379,61 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
                     size2 = fs.statSync(outHtmlPath).size
                     assert.ok size2 > size1
                     done()
+
+    describe "Test All middlewares, without prefix", ->
+        jcs = JcsConstructor
+           staticRoot: STATICROOT
+           urlBase:   '/'
+           stylusSrc: path.join SOURCEROOT, 'stylus'
+           stylusDst: path.join STATICROOT, 'css'
+           coffeeSrc: path.join SOURCEROOT, 'coffee'
+           coffeeDst: path.join STATICROOT, 'js'
+           jadeSrc: path.join SOURCEROOT, 'jade'
+           jadeDst: path.join STATICROOT, 'html'
+
+        examplesite = EXAMPLESITE
+        outCssUrl   = examplesite + "/css/a.css"
+        outJsUrl    = examplesite + "/js/a.js"
+        outHtmlUrl  = examplesite + "/html/a.html"
+        outCssPath  = path.join STATICROOT, 'css', 'a.css'
+        outJsPath   = path.join STATICROOT, 'js', 'a.js'
+        outHtmlPath = path.join STATICROOT, 'html', 'a.html'
+
+        it "#1 'POST' method should return next directly, without error", (done) ->
+            jcs mockReq(examplesite + '/css/notexist.css', 'POST'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#2 Non exist stylus should return next directly, without error", (done) ->
+            jcs mockReq(examplesite + '/css/notexist.css'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#3 Non exist coffee should return next directly, without error", (done) ->
+            jcs mockReq(examplesite + '/js/notexist.js'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#4 Non exist jade should return next directly, without error", (done) ->
+            jcs mockReq(examplesite + '/html/notexist.html'), null, (err) ->
+                assert.ok !err
+                done()
+
+        it "#5 'a.styl' should be compiled to 'a.css', with prefix", (done) ->
+            jcs mockReq(outCssUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outCssPath
+                done()
+
+        it "#6 'a.coffee' should be compiled to 'a.js', with prefix", (done) ->
+            jcs mockReq(outJsUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outJsPath
+                done()
+
+        it "#7 'a.jade' should be compiled to 'a.html', with prefix", (done) ->
+            jcs mockReq(outHtmlUrl), null, (err) ->
+                assert.ok !err
+                assert.ok fs.existsSync outHtmlPath
+                done()
+
