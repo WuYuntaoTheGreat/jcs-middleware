@@ -5,7 +5,11 @@ express     = require 'express'
 router = express.Router()
 
 router.get /^\//, (req, res) ->
-    res.render '/index', {}
+    res.render 'jcs/index',
+        appConfig:
+            prefix: appConfig.prefix
+            appName: appConfig.appName
+            renderMode: 'dynamic'
 
 module.exports = router
 

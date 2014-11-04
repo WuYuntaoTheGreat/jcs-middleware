@@ -51,7 +51,7 @@ app.use(appConfig.prefix, require('jcs-middleware')({
 
     jadeSrc:        jcsSource,
     jadeDst:        jcsRoot,
-    jadeStatics:    appConfig.jadeStatics
+    jadeStatics:    { appConfig: appConfig }
 }));
 
 // Static plugin. Must be after jcs plugin.
@@ -59,7 +59,7 @@ app.use(appConfig.prefix, express.static(path.join(__dirname, 'public')));
 
 // If prefixed, redirect root to prefixed dir.
 app.use('/', function(req, res, next){
-    if (appConfig.prefix && app.Copyright.prefix !== '/' && req.path === '/'){
+    if (appConfig.prefix && appConfig.prefix !== '/' && req.path === '/'){
         res.redirect(appConfig.prefix);
     } else {
         next();

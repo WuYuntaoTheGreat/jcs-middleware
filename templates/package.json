@@ -13,6 +13,7 @@
         "morgan": "~1.3.0",
         "debug": "~2.0.0",
         "coffee-script": "~1.8.0",
+        "jade": "~1.7.0",
         "jcs-middleware": ">=0.0.1"
     }
 }

@@ -5,21 +5,21 @@ var path    = require('path')
   , app = require('express')()
   ;
 
-var theConfig = {};
+var CONF = {};
 
 try{
-    theConfig = require(path.join(__dirname, 'theConfig.json'));
+    CONF = require(path.join(__dirname, 'CONF.json'));
 } catch(err){
     if (err.code != 'MODULE_NOT_FOUND') {
         console.error(err);
     }
 }
 
-theConfig.debugMode     = app.get('env') === 'development';
-theConfig.jadeStatics   = theConfig.jadeStatics || {};
-theConfig.prefix        = theConfig.prefix || '/';
-theConfig.sessionAge    = theConfig.sessionAge || 7 * 24 * 3600 * 1000;
-theConfig.sessionSecret = 'jcs secret';
+CONF.prefix         = CONF.prefix          || '/';
+CONF.sessionAge     = CONF.sessionAge      || 7 * 24 * 3600 * 1000;
+CONF.sessionSecret  = CONF.sessionSecret   || 'jcs secret';
+CONF.debugMode      = app.get('env') === 'development';
+CONF.renderMode     = 'static';
 
-module.exports = theConfig;
+module.exports = CONF;
 

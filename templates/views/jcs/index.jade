@@ -1,0 +1,14 @@
+extends ../layout
+//- vim: set ai et nu ts=4 sw=4 cc=100:
+
+block head_start
+    title= appConfig.appName
+
+block head_end
+    link(rel='stylesheet', href='#{jcsRoot}index.css')
+    script(src='#{jcsRoot}index.js')
+
+block body
+    p
+        | This is a #{appConfig.renderMode} page.
+
