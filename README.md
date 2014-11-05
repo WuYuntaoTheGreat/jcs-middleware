@@ -32,6 +32,11 @@ Usage
 
     app.use('/', require('jsc-middleware')(options));
 
+    // WARNING: jcs middleware *MUST* go *BEFORE* static middleware,
+    // because it depends on static middleware to render the compiled
+    // js/css/html files.
+    app.use('/', express.static(path.join(__dirname, 'public')));
+
 ## Options:
  
 **Global options:**
