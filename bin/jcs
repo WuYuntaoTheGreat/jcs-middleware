@@ -18,14 +18,15 @@ program
     .usage('[options] [dir]')
     .option('-f, --force', 'Force copy template files.')
     .option('-n, --name', 'The name of the web application, default is folder name.')
+    .option('-t, --template <path>', 'The template directory, can be ommitted.')
     .parse(process.argv)
     ;
 
 var destPath    = path.resolve(program.args.shift() || '.')
-  , templPath   = path.join(__dirname, '..', 'templates')
+  , templPath   = program.template || path.join(__dirname, '..', 'templates')
   , appName     = process.name || path.basename(destPath)
-//  , eol         = os.EOL
   ;
+
 
 // Generate and write the appConfig.js
 function initAppConfig(){
@@ -60,6 +61,7 @@ fs.readdir(destPath, function(err, files){
     if (err && 'ENOENT' != err.code){
         throw err;
     } else if (files && files.length > 0 && !program.force){
+        console.log(files);
         program.confirm('Destination folder is not empty, continue? ', function(ok){
             if(ok){
                 process.stdin.destroy();
