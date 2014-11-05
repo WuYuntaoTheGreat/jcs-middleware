@@ -30,6 +30,7 @@ var destPath    = path.resolve(program.args.shift() || '.')
 // Generate and write the appConfig.js
 function initAppConfig(){
     templPkg.name = appName;
+    templPkg.dependencies['jcs-middleware'] = '~' + pkg.version;
     fs.writeFile(
         path.join(destPath, 'package.json'),
         JSON.stringify(templPkg, null, '    '));

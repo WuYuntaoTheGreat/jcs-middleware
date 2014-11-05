@@ -20,7 +20,8 @@ require('nice-logger').init
         dateTime: "HH:mm:ss.SSS"
         message: "%d [%t] - %m"
 
-JcsConstructor = require "../index"
+JcsConstructor = (opt) ->
+    require("../index")(opt).middleware
 
 STATICROOT = path.join __dirname, "public"
 SOURCEROOT = path.join __dirname, "views"

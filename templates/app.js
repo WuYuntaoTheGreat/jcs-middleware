@@ -34,28 +34,28 @@ app.use(session({
 }));
 
 // jcs plugin.
-var jcsRoot = path.join(__dirname, 'public', 'jcs');
-var jcsSource = path.join(__dirname, 'views', 'jcs'); 
-
-app.use(appConfig.prefix, require('jcs-middleware')({
+// put the plugin into app's value paire, for cli tools.
+app.set('jcs-middleware', require('jcs-middleware')({
     debug:          appConfig.debugMode,
     compress:       !appConfig.debugMode,
     staticRoot:     path.join(__dirname, 'public'),
     urlBase:        appConfig.prefix,
     
-    coffeeSrc:      jcsSource,
-    coffeeDst:      jcsRoot,
+    coffeeSrc:      path.join(__dirname, 'views',  'jcs'),
+    coffeeDst:      path.join(__dirname, 'public', 'jcs'),
 
-    stylusSrc:      jcsSource,
-    stylusDst:      jcsRoot,
+    stylusSrc:      path.join(__dirname, 'views',  'jcs'),
+    stylusDst:      path.join(__dirname, 'public', 'jcs'),
 
-    jadeSrc:        jcsSource,
-    jadeDst:        jcsRoot,
+    jadeSrc:        path.join(__dirname, 'views',  'jcs'),
+    jadeDst:        path.join(__dirname, 'public', 'jcs'),
     jadeStatics:    {
         appConfig: appConfig,
         renderMode: 'static'
     }
 }));
+
+app.use(appConfig.prefix, app.get('jcs-middleware').middleware);
 
 // Static plugin. Must be after jcs plugin.
 app.use(appConfig.prefix, express.static(path.join(__dirname, 'public')));
