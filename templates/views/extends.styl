@@ -1,0 +1,54 @@
+// Constants
+jcs-font-family = "Microsoft Yahei", Tahoma, serif, sans-serif
+
+// Mixins
+vendor(prop, args)
+    {prop}          args
+    -o-{prop}       args
+    -ms-{prop}      args
+    -moz-{prop}     args
+    -khtml-{prop}   args
+    -webkit-{prop}  args
+
+background-size()
+    vendor("background-size", arguments)
+
+box-shadow()
+    vendor("box-shadow", arguments)
+
+user-select()
+    -webkit-touch-callout  arguments
+    vendor("user-select",  arguments)
+
+transform()
+    vendor("transform", arguments)
+
+transition-property()
+    vendor("transition-property", arguments)
+
+transition-duration()
+    vendor("transition-duration", arguments)
+
+border-radius()
+    vendor("border-radius", arguments)
+
+
+border-NS()
+    border arguments
+    border-left none
+    border-right none
+
+border-WE()
+    border arguments
+    border-top none
+    border-bottom none
+
+font-slc(size, lineheight, color)
+    font-size size
+    line-height lineheight
+    color color
+
+WxH(width, height)
+    width width
+    height height
+

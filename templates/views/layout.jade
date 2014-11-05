@@ -1,0 +1,20 @@
+doctype html
+//- vim: set ai et nu ts=4 sw=4 cc=100:
+block before_everything
+html
+    - var imgRoot = appConfig.prefix + "images";
+    - var libRoot = appConfig.prefix + "lib";
+    - var jcsRoot = appConfig.prefix + "jcs";
+    head
+        block head_start
+
+        script(src='#{libRoot}/jquery.min.js')
+        script(src='#{libRoot}/scale.js')
+
+        block head_end
+
+    body
+        block body
+
+block after_everything
+
