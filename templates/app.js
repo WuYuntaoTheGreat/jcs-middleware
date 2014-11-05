@@ -51,7 +51,10 @@ app.use(appConfig.prefix, require('jcs-middleware')({
 
     jadeSrc:        jcsSource,
     jadeDst:        jcsRoot,
-    jadeStatics:    { appConfig: appConfig }
+    jadeStatics:    {
+        appConfig: appConfig,
+        renderMode: 'static'
+    }
 }));
 
 // Static plugin. Must be after jcs plugin.

@@ -5,10 +5,10 @@ block head_start
     title= appConfig.appName
 
 block head_end
-    link(rel='stylesheet', href='#{jcsRoot}index.css')
-    script(src='#{jcsRoot}index.js')
+    link(rel='stylesheet', href='#{jcsRoot}/index.css')
+    script(src='#{jcsRoot}/index.js')
 
 block body
     p
-        | This is a #{appConfig.renderMode} page.
+        | This is a #{renderMode} page.
 

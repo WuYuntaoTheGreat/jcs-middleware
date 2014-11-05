@@ -2,8 +2,17 @@
 //
 
 var path    = require('path')
-  , app = require('express')()
+  , app     = require('express')()
+  , pkg     = require('./package.json')
   ;
+
+var DEFAULTS = {
+    appName         : pkg.name,
+    prefix          : '/',
+    sessionAge      : 7 * 24 * 3600 * 1000,
+    sessionSecret   : 'jcs secret',
+    debugMode       : app.get('env') === 'development',
+};
 
 var CONF = {};
 
@@ -15,11 +24,12 @@ try{
     }
 }
 
-CONF.prefix         = CONF.prefix          || '/';
-CONF.sessionAge     = CONF.sessionAge      || 7 * 24 * 3600 * 1000;
-CONF.sessionSecret  = CONF.sessionSecret   || 'jcs secret';
-CONF.debugMode      = app.get('env') === 'development';
-CONF.renderMode     = 'static';
+for(var k in DEFAULTS){
+    if (typeof CONF[k] === 'undefined'){
+        CONF[k] = DEFAULTS[k];
+    }
+}
+
 
 module.exports = CONF;
 

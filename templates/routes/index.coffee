@@ -9,7 +9,7 @@ router.get /^\//, (req, res) ->
         appConfig:
             prefix: appConfig.prefix
             appName: appConfig.appName
-            renderMode: 'dynamic'
+        renderMode: 'dynamic'
 
 module.exports = router
 
