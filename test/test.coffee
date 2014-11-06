@@ -12,6 +12,7 @@ path    = require "path"
 mkdirp  = require "mkdirp"
 url     = require "url"
 rmdir   = require "rimraf"
+async   = require "async"
 
 require('nice-logger').init
     # level: 'trace'
@@ -23,33 +24,81 @@ require('nice-logger').init
 JcsConstructor = (opt) ->
     require("../index")(opt).middleware
 
-STATICROOT = path.join __dirname, "public"
-SOURCEROOT = path.join __dirname, "views"
+STATICROOT  = path.join __dirname, "public"
+SOURCEROOT  = path.join __dirname, "views"
 EXAMPLESITE = "http://yourdomain.com"
+PREFIX      = "prefix"
+
+R =
+    css:
+        _src: 'stylus'
+        _srcSuffix: 'styl'
+        a: {}
+        b: {}
+        x: {}
+    js:
+        _src: 'coffee'
+        a: {}
+        x: {}
+    html:
+        _src: 'jade'
+        a: {}
+        b: {}
+        x: {}
+
+for i, cjh of R
+    for k of cjh when k[0] != '_'
+        cjh[k] =
+            src : path.join SOURCEROOT, cjh._src, k + '.' + (cjh._srcSuffix || cjh._src)
+            dst : path.join STATICROOT, i, k + '.' + i
+            url : EXAMPLESITE + '/' + i + '/' + k + '.' + i
+            urlP: EXAMPLESITE + '/' + PREFIX + '/' + i + '/' + k + '.' + i
+
+logger.info R
+
 
 # Change the file timestamp.
 touch = (f, d) ->
     d = d || new Date
     fs.utimesSync f, d, d
 
+
+# Create a mockup http request object.
 mockReq = (url, method) ->
-    method = method || 'GET'
     {
         url: url
-        method: method
+        method: method || 'GET'
     }
+
+# Shorthand function to create jcs instance.
+createJcs = (which, extra) ->
+    opt = extra || {}
+    opt.staticRoot = STATICROOT
+    which.split(/[\s\|,;]+/).forEach (w) ->
+        if /^[sS]/.test w
+           opt.stylusSrc= path.join SOURCEROOT, 'stylus'
+           opt.stylusDst= path.join STATICROOT, 'css'
+        if /^[cC]/.test w
+           opt.coffeeSrc= path.join SOURCEROOT, 'coffee'
+           opt.coffeeDst= path.join STATICROOT, 'js'
+        if /^[jJ]/.test w
+           opt.jadeSrc  = path.join SOURCEROOT, 'jade'
+           opt.jadeDst  = path.join STATICROOT, 'html'
+
+    JcsConstructor opt
+
 
 
 describe "THE TEST FOR JCS MIDDLEWARE", ->
+    # Before each test case. we need to clear the output folder.
+    # This is done by:
+    # 1) Delete the whole directory, with its contents.
+    # 2) And then create that directory again.
+    #
     beforeEach (done)->
-        #logger.info "deleting public folder..."
         rmdir STATICROOT, (err)->
             if err
                 logger.error err
-                #The folder may not exist.
-                # throw err
-                #
-            #logger.info "creating public folder..."
             mkdirp STATICROOT, (err)->
                 if err
                     logger.error err
@@ -57,384 +106,341 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
                 else
                     done()
 
+    ############################################################
+    # Test stylus middleware
     describe "Test stylus middleware", ->
-        jcs = JcsConstructor
-           staticRoot: STATICROOT
-           stylusSrc: path.join SOURCEROOT, 'stylus'
-           stylusDst: path.join STATICROOT, 'css'
-
-        srcPath = path.join SOURCEROOT, 'stylus', 'a.styl'
-        outPath = path.join STATICROOT, 'css', 'a.css'
-        outUrl = EXAMPLESITE + '/css/a.css'
-
+        jcs = createJcs 's'
 
         it "#1 'a.styl' should be compiled to 'a.css'", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.css.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
+                assert.ok fs.existsSync R.css.a.dst
                 done()
 
         it "#2 do twice without touch source, should not compile", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.css.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
-                jcs mockReq(outUrl), null, (err) ->
+                assert.ok fs.existsSync R.css.a.dst
+                outTime = fs.statSync(R.css.a.dst).mtime
+                jcs mockReq(R.css.a.url), null, (err) ->
                     if err
                         logger.error err
                         logger.error err.stack
                     assert.ok !err
-                    assert.ok fs.existsSync outPath
-                    assert.notStrictEqual fs.statSync(outPath).mtime, outTime
+                    assert.ok fs.existsSync R.css.a.dst
+                    assert.notStrictEqual fs.statSync(R.css.a.dst).mtime, outTime
                     done()
 
 
         it "#4 do twice with touch source, should compile", (done) ->
             this.timeout 3000
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.css.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
+                assert.ok fs.existsSync R.css.a.dst
+                outTime = fs.statSync(R.css.a.dst).mtime
 
                 setTimeout ()->
-                    logger.debug "src time before=", fs.statSync(srcPath).mtime
-                    touch srcPath
-                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+                    touch R.css.a.src
 
-                    jcs mockReq(outUrl), null, (err) ->
+                    jcs mockReq(R.css.a.url), null, (err) ->
                         assert.ok !err
-                        assert.ok fs.existsSync outPath
-                        outTime2 = fs.statSync(outPath).mtime
+                        assert.ok fs.existsSync R.css.a.dst
+                        outTime2 = fs.statSync(R.css.a.dst).mtime
                         logger.debug "t1=%s", outTime
                         logger.debug "t2=%s", outTime2
                         assert.ok outTime2 > outTime
                         done()
                 , 1234
 
-
-        outPathB = path.join STATICROOT, 'css', 'b.css'
-        outUrlB = EXAMPLESITE + '/css/b.css'
 
         it "#5 touch included file, should compile", (done) ->
             this.timeout 3000
 
-            jcs mockReq(outUrlB), null, (err) ->
+            jcs mockReq(R.css.b.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPathB
-                outTime = fs.statSync(outPathB).mtime
+                assert.ok fs.existsSync R.css.b.dst
+                outTime = fs.statSync(R.css.b.dst).mtime
 
                 setTimeout ()->
-                    logger.debug "src time before=", fs.statSync(srcPath).mtime
-                    touch srcPath
-                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+                    touch R.css.a.src
 
-                    jcs mockReq(outUrlB), null, (err) ->
+                    jcs mockReq(R.css.b.url), null, (err) ->
                         assert.ok !err
-                        assert.ok fs.existsSync outPathB
-                        outTime2 = fs.statSync(outPathB).mtime
+                        assert.ok fs.existsSync R.css.b.dst
+                        outTime2 = fs.statSync(R.css.b.dst).mtime
                         logger.debug "t1=%s", outTime
                         logger.debug "t2=%s", outTime2
                         assert.ok outTime2 > outTime
                         done()
                 , 1234
 
+    ############################################################
+    # Test coffee middleware
     describe "Test coffee middleware", ->
-        jcs = JcsConstructor
-           staticRoot: STATICROOT
-           coffeeSrc: path.join SOURCEROOT, 'coffee'
-           coffeeDst: path.join STATICROOT, 'js'
-
-        srcPath = path.join SOURCEROOT, 'coffee', 'a.coffee'
-        outPath = path.join STATICROOT, 'js', 'a.js'
-        outUrl = EXAMPLESITE + '/js/a.js'
-
-
+        jcs = createJcs 'c'
 
         it "#1 'a.coffee' should be compiled to 'a.js'", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.js.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
+                assert.ok fs.existsSync R.js.a.dst
                 done()
 
         it "#2 do twice without touch source, should not compile", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.js.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
-                jcs mockReq(outUrl), null, (err) ->
+                assert.ok fs.existsSync R.js.a.dst
+                outTime = fs.statSync(R.js.a.dst).mtime
+                jcs mockReq(R.js.a.url), null, (err) ->
                     if err
                         logger.error err
                         logger.error err.stack
                     assert.ok !err
-                    assert.ok fs.existsSync outPath
-                    assert.notStrictEqual fs.statSync(outPath).mtime, outTime
+                    assert.ok fs.existsSync R.js.a.dst
+                    assert.notStrictEqual fs.statSync(R.js.a.dst).mtime, outTime
                     done()
 
         it "#3 do twice with touch source, should compile", (done) ->
             this.timeout 3000
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.js.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
+                assert.ok fs.existsSync R.js.a.dst
+                outTime = fs.statSync(R.js.a.dst).mtime
 
                 setTimeout ()->
-                    logger.debug "src time before=", fs.statSync(srcPath).mtime
-                    touch srcPath
-                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+                    touch R.js.a.src
 
-                    jcs mockReq(outUrl), null, (err) ->
+                    jcs mockReq(R.js.a.url), null, (err) ->
                         assert.ok !err
-                        assert.ok fs.existsSync outPath
-                        outTime2 = fs.statSync(outPath).mtime
+                        assert.ok fs.existsSync R.js.a.dst
+                        outTime2 = fs.statSync(R.js.a.dst).mtime
                         logger.debug "t1=%s", outTime
                         logger.debug "t2=%s", outTime2
                         assert.ok outTime2 > outTime
                         done()
                 , 1234
 
+    ############################################################
+    # Test jade middleware
     describe "Test jade middleware", ->
-        jcs = JcsConstructor
-           staticRoot: STATICROOT
-           jadeSrc: path.join SOURCEROOT, 'jade'
-           jadeDst: path.join STATICROOT, 'html'
-
-        srcPath = path.join SOURCEROOT, 'jade', 'a.jade'
-        outPath = path.join STATICROOT, 'html', 'a.html'
-        outUrl = EXAMPLESITE + '/html/a.html'
-
+        jcs = createJcs 'j'
 
         it "#1 'a.jade' should be compiled to 'a.html'", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.html.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
+                assert.ok fs.existsSync R.html.a.dst
                 done()
 
         it "#2 do twice without touch source, should not compile", (done) ->
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.html.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
-                jcs mockReq(outUrl), null, (err) ->
+                assert.ok fs.existsSync R.html.a.dst
+                outTime = fs.statSync(R.html.a.dst).mtime
+                jcs mockReq(R.html.a.url), null, (err) ->
                     if err
                         logger.error err
                         logger.error err.stack
                     assert.ok !err
-                    assert.ok fs.existsSync outPath
-                    assert.notStrictEqual fs.statSync(outPath).mtime, outTime
+                    assert.ok fs.existsSync R.html.a.dst
+                    assert.notStrictEqual fs.statSync(R.html.a.dst).mtime, outTime
                     done()
 
         it "#3 do twice with touch source, should compile", (done) ->
             this.timeout 3000
-            jcs mockReq(outUrl), null, (err) ->
+            jcs mockReq(R.html.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPath
-                outTime = fs.statSync(outPath).mtime
+                assert.ok fs.existsSync R.html.a.dst
+                outTime = fs.statSync(R.html.a.dst).mtime
 
                 setTimeout ()->
-                    logger.debug "src time before=", fs.statSync(srcPath).mtime
-                    touch srcPath
-                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+                    touch R.html.a.src
 
-                    jcs mockReq(outUrl), null, (err) ->
+                    jcs mockReq(R.html.a.url), null, (err) ->
                         assert.ok !err
-                        assert.ok fs.existsSync outPath
-                        outTime2 = fs.statSync(outPath).mtime
+                        assert.ok fs.existsSync R.html.a.dst
+                        outTime2 = fs.statSync(R.html.a.dst).mtime
                         logger.debug "t1=%s", outTime
                         logger.debug "t2=%s", outTime2
                         assert.ok outTime2 > outTime
                         done()
                 , 1234
-
-        outPathB = path.join STATICROOT, 'html', 'b.html'
-        outUrlB = EXAMPLESITE + '/html/b.html'
 
         it "#4 touch included file, should compile", (done) ->
             this.timeout 3000
 
-            jcs mockReq(outUrlB), null, (err) ->
+            jcs mockReq(R.html.b.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outPathB
-                outTime = fs.statSync(outPathB).mtime
+                assert.ok fs.existsSync R.html.b.dst
+                outTime = fs.statSync(R.html.b.dst).mtime
 
                 setTimeout ()->
-                    logger.debug "src time before=", fs.statSync(srcPath).mtime
-                    touch srcPath
-                    logger.debug "src time  after=", fs.statSync(srcPath).mtime
+                    # Touch 'a', which is included by 'b'
+                    touch R.html.a.src
 
-                    jcs mockReq(outUrlB), null, (err) ->
+                    jcs mockReq(R.html.b.url), null, (err) ->
                         assert.ok !err
-                        assert.ok fs.existsSync outPathB
-                        outTime2 = fs.statSync(outPathB).mtime
+                        assert.ok fs.existsSync R.html.b.dst
+                        outTime2 = fs.statSync(R.html.b.dst).mtime
                         logger.debug "t1=%s", outTime
                         logger.debug "t2=%s", outTime2
                         assert.ok outTime2 > outTime
                         done()
                 , 1234
 
+    ############################################################
+    # Test All middlewares, together
     describe "Test All middlewares, together", ->
-        jcs = JcsConstructor
-           staticRoot: STATICROOT
-           urlBase:   'prefix'
-           stylusSrc: path.join SOURCEROOT, 'stylus'
-           stylusDst: path.join STATICROOT, 'css'
-           coffeeSrc: path.join SOURCEROOT, 'coffee'
-           coffeeDst: path.join STATICROOT, 'js'
-           jadeSrc: path.join SOURCEROOT, 'jade'
-           jadeDst: path.join STATICROOT, 'html'
-
-        examplesite = EXAMPLESITE + "/prefix"
-        outCssUrl   = examplesite + "/css/a.css"
-        outJsUrl    = examplesite + "/js/a.js"
-        outHtmlUrl  = examplesite + "/html/a.html"
-        outCssPath  = path.join STATICROOT, 'css', 'a.css'
-        outJsPath   = path.join STATICROOT, 'js', 'a.js'
-        outHtmlPath = path.join STATICROOT, 'html', 'a.html'
+        jcs = createJcs 's|c|j',
+           urlBase:  PREFIX
 
         it "#1 'POST' method should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/css/notexist.css', 'POST'), null, (err) ->
+            jcs mockReq(R.css.x.urlP, 'POST'), null, (err) ->
                 assert.ok !err
                 done()
 
         it "#2 Non exist stylus should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/css/notexist.css'), null, (err) ->
+            jcs mockReq(R.css.x.urlP), null, (err) ->
                 assert.ok !err
                 done()
 
         it "#3 Non exist coffee should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/js/notexist.js'), null, (err) ->
+            jcs mockReq(R.js.x.urlP), null, (err) ->
                 assert.ok !err
                 done()
 
         it "#4 Non exist jade should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/html/notexist.html'), null, (err) ->
+            jcs mockReq(R.html.x.urlP), null, (err) ->
                 assert.ok !err
                 done()
 
         it "#5 'a.styl' should be compiled to 'a.css', with prefix", (done) ->
-            jcs mockReq(outCssUrl), null, (err) ->
+            jcs mockReq(R.css.a.urlP), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outCssPath
+                assert.ok fs.existsSync R.css.a.dst
                 done()
 
         it "#6 'a.coffee' should be compiled to 'a.js', with prefix", (done) ->
-            jcs mockReq(outJsUrl), null, (err) ->
+            jcs mockReq(R.js.a.urlP), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outJsPath
+                assert.ok fs.existsSync R.js.a.dst
                 done()
 
         it "#7 'a.jade' should be compiled to 'a.html', with prefix", (done) ->
-            jcs mockReq(outHtmlUrl), null, (err) ->
+            jcs mockReq(R.html.a.urlP), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outHtmlPath
+                assert.ok fs.existsSync R.html.a.dst
                 done()
 
         it "#8 do twice without touch source, but with force, should compile", (done) ->
             this.timeout 3000
-            jcs = JcsConstructor
-               staticRoot: STATICROOT
+            jcs = createJcs 's',
                force: true
-               urlBase:   'prefix'
-               stylusSrc: path.join SOURCEROOT, 'stylus'
-               stylusDst: path.join STATICROOT, 'css'
-            jcs mockReq(outCssUrl), null, (err) ->
+               urlBase: 'prefix'
+
+            jcs mockReq(R.css.a.urlP), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outCssPath
-                outTime = fs.statSync(outCssPath).mtime
+                assert.ok fs.existsSync R.css.a.dst
+                outTime = fs.statSync(R.css.a.dst).mtime
 
                 setTimeout ()->
-                    jcs mockReq(outCssUrl), null, (err) ->
+                    jcs mockReq(R.css.a.urlP), null, (err) ->
                         if err
                             logger.error err
                             logger.error err.stack
                         assert.ok !err
-                        assert.ok fs.existsSync outCssPath
-                        assert.ok fs.statSync(outCssPath).mtime > outTime
+                        assert.ok fs.existsSync R.css.a.dst
+                        assert.ok fs.statSync(R.css.a.dst).mtime > outTime
                         done()
                 , 1158
 
         it "#9 test compress", (done) ->
-            jcs = JcsConstructor
-               staticRoot: STATICROOT
+            jcs = createJcs 'j',
                force: true
                compress: true
                urlBase:   'prefix'
-               jadeSrc: path.join SOURCEROOT, 'jade'
-               jadeDst: path.join STATICROOT, 'html'
 
-            jcs mockReq(outHtmlUrl), null, (err) ->
+            jcs mockReq(R.html.a.urlP), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outHtmlPath
-                size1 = fs.statSync(outHtmlPath).size
+                assert.ok fs.existsSync R.html.a.dst
+                size1 = fs.statSync(R.html.a.dst).size
 
-                jcs = JcsConstructor
-                   staticRoot: STATICROOT
+                jcs = createJcs 'j',
                    force: true
                    compress: false
                    urlBase:   'prefix'
-                   jadeSrc: path.join SOURCEROOT, 'jade'
-                   jadeDst: path.join STATICROOT, 'html'
 
-                jcs mockReq(outHtmlUrl), null, (err) ->
+                jcs mockReq(R.html.a.urlP), null, (err) ->
                     assert.ok !err
-                    assert.ok fs.existsSync outHtmlPath
-                    size2 = fs.statSync(outHtmlPath).size
+                    assert.ok fs.existsSync R.html.a.dst
+                    size2 = fs.statSync(R.html.a.dst).size
                     assert.ok size2 > size1
                     done()
 
+    ############################################################
+    # Test All middlewares, without prefix
     describe "Test All middlewares, without prefix", ->
-        jcs = JcsConstructor
-           staticRoot: STATICROOT
+        jcs = createJcs 's|c|j',
            urlBase:   '/'
-           stylusSrc: path.join SOURCEROOT, 'stylus'
-           stylusDst: path.join STATICROOT, 'css'
-           coffeeSrc: path.join SOURCEROOT, 'coffee'
-           coffeeDst: path.join STATICROOT, 'js'
-           jadeSrc: path.join SOURCEROOT, 'jade'
-           jadeDst: path.join STATICROOT, 'html'
 
         examplesite = EXAMPLESITE
-        outCssUrl   = examplesite + "/css/a.css"
-        outJsUrl    = examplesite + "/js/a.js"
-        outHtmlUrl  = examplesite + "/html/a.html"
-        outCssPath  = path.join STATICROOT, 'css', 'a.css'
-        outJsPath   = path.join STATICROOT, 'js', 'a.js'
-        outHtmlPath = path.join STATICROOT, 'html', 'a.html'
 
-        it "#1 'POST' method should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/css/notexist.css', 'POST'), null, (err) ->
+        it "#1 Non exist stylus should return next directly, without error", (done) ->
+            jcs mockReq(R.css.x.url), null, (err) ->
                 assert.ok !err
                 done()
 
-        it "#2 Non exist stylus should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/css/notexist.css'), null, (err) ->
+        it "#2 Non exist coffee should return next directly, without error", (done) ->
+            jcs mockReq(R.js.x.url), null, (err) ->
                 assert.ok !err
                 done()
 
-        it "#3 Non exist coffee should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/js/notexist.js'), null, (err) ->
+        it "#3 Non exist jade should return next directly, without error", (done) ->
+            jcs mockReq(R.html.x.url), null, (err) ->
                 assert.ok !err
                 done()
 
-        it "#4 Non exist jade should return next directly, without error", (done) ->
-            jcs mockReq(examplesite + '/html/notexist.html'), null, (err) ->
+        it "#4 'a.styl' should be compiled to 'a.css', with prefix", (done) ->
+            jcs mockReq(R.css.a.url), null, (err) ->
                 assert.ok !err
+                assert.ok fs.existsSync R.css.a.dst
                 done()
 
-        it "#5 'a.styl' should be compiled to 'a.css', with prefix", (done) ->
-            jcs mockReq(outCssUrl), null, (err) ->
+        it "#5 'a.coffee' should be compiled to 'a.js', with prefix", (done) ->
+            jcs mockReq(R.js.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outCssPath
+                assert.ok fs.existsSync R.js.a.dst
                 done()
 
-        it "#6 'a.coffee' should be compiled to 'a.js', with prefix", (done) ->
-            jcs mockReq(outJsUrl), null, (err) ->
+        it "#6 'a.jade' should be compiled to 'a.html', with prefix", (done) ->
+            jcs mockReq(R.html.a.url), null, (err) ->
                 assert.ok !err
-                assert.ok fs.existsSync outJsPath
+                assert.ok fs.existsSync R.html.a.dst
                 done()
 
-        it "#7 'a.jade' should be compiled to 'a.html', with prefix", (done) ->
-            jcs mockReq(outHtmlUrl), null, (err) ->
-                assert.ok !err
-                assert.ok fs.existsSync outHtmlPath
+    ############################################################
+    # Test parallel...
+    describe "Test parallel...", ->
+        jcs = createJcs 's|c|j'
+
+        it "#1 dito", (done) ->
+            this.timeout 2000
+            async.detect [
+                R.css.a
+                R.css.b
+                R.js.a
+                R.html.a
+                R.html.b
+            ], (item, cb) ->
+                jcs mockReq(item.url), null, (err) ->
+                    if err
+                        logger.error err
+                        cb true
+                    else if !fs.existsSync item.dst
+                        logger.error "Error: #{item.dst} not generated!"
+                        cb true
+                    else
+                        cb false
+            , (result) ->
+                assert.ok !result
                 done()
+
 
