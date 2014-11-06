@@ -32,10 +32,10 @@ Usage
 
     app.use('/', require('jsc-middleware')(options));
 
-    // WARNING: jcs middleware *MUST* go *BEFORE* static middleware,
-    // because it depends on static middleware to render the compiled
-    // js/css/html files.
     app.use('/', express.static(path.join(__dirname, 'public')));
+
+**WARNING**: jcs middleware *MUST* go *BEFORE* static middleware, because it
+depends on static middleware to render the compiled js/css/html files.
 
 ## Options:
  
@@ -69,7 +69,8 @@ Usage
 
 If any of the **xxxSrc** options is ommit, that feature will be turned off.
 
-## File Path
+File Path
+=========
 
 Say you have a express website at 
 
@@ -125,6 +126,30 @@ for example:
 
 
 The same with coffee and jade options.
+
+Generator
+=========
+
+jcs-middleware also comes with a command line tool to generate web application
+from template; just like express-generator.
+
+To use this generator, you may need to install a copy of jcs-middleware
+globally:
+    npm install -g jcs-middleware
+
+##Usage:
+
+    Usage: jcs [options] [dir]
+  
+    Options:
+  
+      -h, --help             output usage information
+      -V, --version          output the version number
+      -f, --force            Force copy template files.
+      -n, --name             The name of the web application, default is
+                             folder name.
+      -t, --template <path>  The template directory, can be ommitted. 
+
 
 License
 =======
