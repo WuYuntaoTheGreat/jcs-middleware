@@ -21,9 +21,6 @@ require('nice-logger').init
         dateTime: "HH:mm:ss.SSS"
         message: "%d [%t] - %m"
 
-JcsConstructor = (opt) ->
-    require("../index")(opt).middleware
-
 STATICROOT  = path.join __dirname, "public"
 SOURCEROOT  = path.join __dirname, "views"
 EXAMPLESITE = "http://yourdomain.com"
@@ -54,7 +51,28 @@ for i, cjh of R
             url : EXAMPLESITE + '/' + i + '/' + k + '.' + i
             urlP: EXAMPLESITE + '/' + PREFIX + '/' + i + '/' + k + '.' + i
 
-logger.info R
+#logger.info R
+
+
+# Shorthand function to create jcs instance.
+createJcsObj = (which, extra) ->
+    opt = extra || {}
+    opt.staticRoot = STATICROOT
+    which.split(/[\s\|,;]+/).forEach (w) ->
+        if /^[sS]/.test w
+           opt.stylusSrc= path.join SOURCEROOT, 'stylus'
+           opt.stylusDst= path.join STATICROOT, 'css'
+        if /^[cC]/.test w
+           opt.coffeeSrc= path.join SOURCEROOT, 'coffee'
+           opt.coffeeDst= path.join STATICROOT, 'js'
+        if /^[jJ]/.test w
+           opt.jadeSrc  = path.join SOURCEROOT, 'jade'
+           opt.jadeDst  = path.join STATICROOT, 'html'
+
+    require("../index")(opt)
+
+createJcs = (which, extra) ->
+    createJcsObj(which, extra).middleware
 
 
 # Change the file timestamp.
@@ -69,25 +87,6 @@ mockReq = (url, method) ->
         url: url
         method: method || 'GET'
     }
-
-# Shorthand function to create jcs instance.
-createJcs = (which, extra) ->
-    opt = extra || {}
-    opt.staticRoot = STATICROOT
-    which.split(/[\s\|,;]+/).forEach (w) ->
-        if /^[sS]/.test w
-           opt.stylusSrc= path.join SOURCEROOT, 'stylus'
-           opt.stylusDst= path.join STATICROOT, 'css'
-        if /^[cC]/.test w
-           opt.coffeeSrc= path.join SOURCEROOT, 'coffee'
-           opt.coffeeDst= path.join STATICROOT, 'js'
-        if /^[jJ]/.test w
-           opt.jadeSrc  = path.join SOURCEROOT, 'jade'
-           opt.jadeDst  = path.join STATICROOT, 'html'
-
-    JcsConstructor opt
-
-
 
 describe "THE TEST FOR JCS MIDDLEWARE", ->
     # Before each test case. we need to clear the output folder.
@@ -443,4 +442,27 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
                 assert.ok !result
                 done()
 
+
+    
+    ############################################################
+    # Test prepare static resources.
+    describe "Test prepare static resources.", ->
+        it "#1 dito", (done) ->
+            createJcsObj('s|c|j').prepare (err)->
+                assert.ok !err
+                async.detect [
+                    R.css.a
+                    R.css.b
+                    R.js.a
+                    R.html.a
+                    R.html.b
+                ], (item, cb) ->
+                    if !fs.existsSync item.dst
+                        logger.error "'#{item.dst}' does not generated!"
+                        cb true
+                    else
+                        cb false
+                , (result) ->
+                    assert.ok !result
+                    done()
 
