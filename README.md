@@ -135,6 +135,7 @@ from template; just like express-generator.
 
 To use this generator, you may need to install a copy of jcs-middleware
 globally:
+
     npm install -g jcs-middleware
 
 ##Usage:
