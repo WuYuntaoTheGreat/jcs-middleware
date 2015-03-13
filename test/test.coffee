@@ -5,7 +5,8 @@
 # vim: set et ai ts=4 sw=4 cc=100 nu:
 #
 
-logger  = require("nice-logger").logger
+#logger  = require("nice-logger").logger
+logger  = require("../lib/logger").logger
 assert  = require "assert"
 fs      = require "fs"
 path    = require "path"
@@ -14,12 +15,12 @@ url     = require "url"
 rmdir   = require "rimraf"
 async   = require "async"
 
-require('nice-logger').init
-    # level: 'trace'
-    level: 'info'
-    format:
-        dateTime: "HH:mm:ss.SSS"
-        message: "%d [%t] - %m"
+#require('nice-logger').init
+#    # level: 'trace'
+#    level: 'info'
+#    format:
+#        dateTime: "HH:mm:ss.SSS"
+#        message: "%d [%t] - %m"
 
 STATICROOT  = path.join __dirname, "public"
 SOURCEROOT  = path.join __dirname, "views"
