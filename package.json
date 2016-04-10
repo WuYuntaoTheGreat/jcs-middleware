@@ -1,6 +1,6 @@
 {
   "name": "jcs-middleware",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Jade, CoffeeScript, Stylus middleware for Express.js",
   "main": "index.js",
   "scripts": {
