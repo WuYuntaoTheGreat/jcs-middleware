@@ -31,11 +31,11 @@ Usage
 ## In Express app.js
 
     app.use('/', require('jsc-middleware')(options));
-
     app.use('/', express.static(path.join(__dirname, 'public')));
 
 **WARNING**: jcs middleware *MUST* go *BEFORE* static middleware, because it
-depends on static middleware to render the compiled js/css/html files.
+does not render output directly and output to express, instead it depends on
+static middleware to render the compiled js/css/html files.
 
 ## Options:
  
@@ -45,7 +45,6 @@ depends on static middleware to render the compiled js/css/html files.
      compress       Uglify the output, all of them.
      force          Force compile every time.
      staticRoot     The root directory of the static files.
-     urlBase        The base url prefix, which should point to <staticRoot>
 
 **Coffee-script options:**
 
@@ -60,6 +59,12 @@ depends on static middleware to render the compiled js/css/html files.
 
      stylusSrc      Source directory used to find .styl files.
      stylusDst      Destination directory where the .css files are stored.
+
+**Less options:**
+
+     lessSrc        Source directory used to find .less files.
+     lessDst        Destination directory where the .css files are stored.
+     lessPaths      Search paths for @import directives
 
 **Jade options:**
 
@@ -133,8 +138,20 @@ for example:
 
 The same with coffee and jade options.
 
+Order of Languages
+==================
+If source paths of different languages are pointing to the same directory, the
+following order will be used:
+
+* **stylus** > **less**
+* **jade** > **ejs**
+
+
 Generator
 =========
+
+**NOTE:**
+_Templates that will be generated are out dated, and will be updated soon._
 
 jcs-middleware also comes with a command line tool to generate web application
 from template; just like express-generator.

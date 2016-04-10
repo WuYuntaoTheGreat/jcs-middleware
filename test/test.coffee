@@ -59,6 +59,10 @@ R =
         a: {}
         b: {}
         x: {}
+    less:
+        _dst: 'css'
+        a: {}
+        x: {}
 
 for i, cjh of R
     for k of cjh when k[0] != '_'
@@ -78,15 +82,18 @@ createJcsObj = (which, extra) ->
         if /^[sS]/.test w
            opt.stylusSrc= path.join SOURCEROOT, 'stylus'
            opt.stylusDst= path.join STATICROOT, 'css'
-        if /^[cC]/.test w
-           opt.coffeeSrc= path.join SOURCEROOT, 'coffee'
-           opt.coffeeDst= path.join STATICROOT, 'js'
+        if /^[lL]/.test w
+            opt.lessSrc = path.join SOURCEROOT, 'less'
+            opt.lessDst = path.join STATICROOT, 'css'
         if /^[jJ]/.test w
            opt.jadeSrc  = path.join SOURCEROOT, 'jade'
            opt.jadeDst  = path.join STATICROOT, 'html'
         if /^[eE]/.test w
             opt.ejsSrc  = path.join SOURCEROOT, 'ejs'
             opt.ejsDst  = path.join STATICROOT, 'html'
+        if /^[cC]/.test w
+           opt.coffeeSrc= path.join SOURCEROOT, 'coffee'
+           opt.coffeeDst= path.join STATICROOT, 'js'
 
     require("../index")(opt)
 
@@ -192,6 +199,17 @@ describe "ALL", ->
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
+
+        ############################################################
+        # Test less middleware
+        describe.only "Test less middleware", ->
+            jcs = createJcs 'l'
+
+            it "#1 'a.less' should be compiled to 'a.css'", (done) ->
+                jcs mockReq(R.less.a.url), null, (err) ->
+                    assert.ok !err
+                    assert.ok fs.existsSync R.less.a.dst
+                    done()
 
         ############################################################
         # Test coffee middleware
