@@ -72,7 +72,7 @@ static middleware to render the compiled js/css/html files.
      jadeDst        Destination directory where the .js files are stored.
      jadeStatics    Hash map used to generate jade pages.
 
-**Jade options:**
+**Ejs options:**
 
      ejsSrc        Source directory used to find .ejs files.
      ejsDst        Destination directory where the .js files are stored.
