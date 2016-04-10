@@ -5,8 +5,7 @@
 # vim: set et ai ts=4 sw=4 cc=100 nu:
 #
 
-#logger  = require("nice-logger").logger
-logger  = require("../lib/logger").logger
+logger  = require("nice-logger").logger
 assert  = require "assert"
 fs      = require "fs"
 path    = require "path"
@@ -27,6 +26,18 @@ SOURCEROOT  = path.join __dirname, "views"
 EXAMPLESITE = "http://yourdomain.com"
 PREFIX      = "prefix"
 
+
+# All the test data
+#
+# a - testcase 'A'
+# b - testcase 'B'
+# x - testcase NOT EXIST
+#
+#   .src  - source file path
+#   .dst  - destination file path
+#   .url  - plain url
+#   .urlP - url with prefix
+#
 R =
     css:
         _src: 'stylus'
@@ -47,12 +58,12 @@ R =
 for i, cjh of R
     for k of cjh when k[0] != '_'
         cjh[k] =
-            src : path.join SOURCEROOT, cjh._src, k + '.' + (cjh._srcSuffix || cjh._src)
-            dst : path.join STATICROOT, i, k + '.' + i
-            url : EXAMPLESITE + '/' + i + '/' + k + '.' + i
-            urlP: EXAMPLESITE + '/' + PREFIX + '/' + i + '/' + k + '.' + i
+            src : path.join SOURCEROOT, cjh._src, "#{k}.#{cjh._srcSuffix || cjh._src}"
+            dst : path.join STATICROOT, i, "#{k}.#{i}"
+            url : "#{EXAMPLESITE}/#{i}/#{k}.#{i}"
+            urlP: "#{EXAMPLESITE}/#{PREFIX}/#{i}/#{k}.#{i}"
 
-#logger.info R
+logger.info R
 
 
 # Shorthand function to create jcs instance.
@@ -421,7 +432,7 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
     describe "Test parallel...", ->
         jcs = createJcs 's|c|j'
 
-        it "#1 dito", (done) ->
+        it "#1 'parallel'", (done) ->
             this.timeout 2000
             async.detect [
                 R.css.a
@@ -444,11 +455,11 @@ describe "THE TEST FOR JCS MIDDLEWARE", ->
                 done()
 
 
-    
+
     ############################################################
     # Test prepare static resources.
     describe "Test prepare static resources.", ->
-        it "#1 dito", (done) ->
+        it "#1 'prepare'", (done) ->
             createJcsObj('s|c|j').prepare (err)->
                 assert.ok !err
                 async.detect [
