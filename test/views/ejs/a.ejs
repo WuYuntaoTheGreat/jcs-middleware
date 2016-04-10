@@ -1,0 +1,20 @@
+<%#
+vim: ai et nu ts=4 sw=4:
+%>
+<%
+users = [
+{ name: 'Tobi', age: 2, species: 'ferret' }
+, { name: 'Loki', age: 2, species: 'ferret' }
+, { name: 'Jane', age: 6, species: 'ferret' }
+]
+%>
+<h1>Users</h1>
+
+<% function user(user) { %>
+  <li><strong><%= user.name %></strong> is a <%= user.age %> year old <%= user.species %>.</li>
+<% } %>
+
+<ul>
+  <% users.map(user) %>
+</ul>
+
