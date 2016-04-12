@@ -100,6 +100,8 @@ createJcsObj = (which, extra) ->
 createJcs = (which, extra) ->
     createJcsObj(which, extra).middleware
 
+createJcsObj('s|c|j').prepare (err)->
+    logger.info err
 
 # Change the file timestamp.
 touch = (f, d) ->
@@ -202,7 +204,7 @@ describe "ALL", ->
 
         ############################################################
         # Test less middleware
-        describe.only "Test less middleware", ->
+        describe "Test less middleware", ->
             jcs = createJcs 'l'
 
             it "#1 'a.less' should be compiled to 'a.css'", (done) ->
@@ -546,21 +548,16 @@ describe "ALL", ->
             it "#1 'prepare'", (done) ->
                 createJcsObj('s|c|j').prepare (err)->
                     assert.ok !err
-                    async.detect [
+                    for item in [
                         R.stylus.a
                         R.stylus.b
                         R.coffee.a
                         R.jade.a
                         R.jade.b
-                    ], (item, cb) ->
-                        if !fs.existsSync item.dst
-                            logger.error "'#{item.dst}' does not generated!"
-                            cb true
-                        else
-                            cb false
-                    , (result) ->
-                        assert.ok !result
-                        done()
+                    ]
+                        assert.ok fs.existsSync item.dst
+                    
+                    done()
 
 
         ############################################################
@@ -573,3 +570,5 @@ describe "ALL", ->
                     assert.ok fs.existsSync R.ejs.b.dst
                     assert.ok fs.statSync(R.ejs.b.dst).size > 0
                     done()
+
+
