@@ -5,7 +5,7 @@
 # vim: set et ai ts=4 sw=4 cc=100 nu:
 #
 
-logger  = require("nice-logger").logger
+logger  = require("../lib/logger").logger
 assert  = require "assert"
 fs      = require "fs"
 path    = require "path"
@@ -13,13 +13,6 @@ mkdirp  = require "mkdirp"
 url     = require "url"
 rmdir   = require "rimraf"
 async   = require "async"
-
-#require('nice-logger').init
-#    # level: 'trace'
-#    level: 'info'
-#    format:
-#        dateTime: "HH:mm:ss.SSS"
-#        message: "%d [%t] - %m"
 
 STATICROOT  = path.join __dirname, "public"
 SOURCEROOT  = path.join __dirname, "views"
@@ -174,8 +167,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.stylus.a.dst
                             outTime2 = fs.statSync(R.stylus.a.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
@@ -196,8 +189,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.stylus.b.dst
                             outTime2 = fs.statSync(R.stylus.b.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
@@ -252,8 +245,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.coffee.a.dst
                             outTime2 = fs.statSync(R.coffee.a.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
@@ -297,8 +290,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.jade.a.dst
                             outTime2 = fs.statSync(R.jade.a.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
@@ -319,8 +312,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.jade.b.dst
                             outTime2 = fs.statSync(R.jade.b.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
@@ -365,8 +358,8 @@ describe "ALL", ->
                             assert.ok !err
                             assert.ok fs.existsSync R.ejs.a.dst
                             outTime2 = fs.statSync(R.ejs.a.dst).mtime
-                            logger.debug "t1=%s", outTime
-                            logger.debug "t2=%s", outTime2
+                            logger.debug "t1=#{outTime}"
+                            logger.debug "t2=#{outTime2}"
                             assert.ok outTime2 > outTime
                             done()
                     , 1234
