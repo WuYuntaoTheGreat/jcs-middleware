@@ -3,12 +3,12 @@ doctype html
 block before_everything
 html
     - var imgRoot = appConfig.prefix + "images";
-    - var libRoot = appConfig.prefix + "lib";
+    - var npmRoot = appConfig.prefix + "npm";
     - var jcsRoot = appConfig.prefix + "jcs";
     head
         block head_start
 
-        script(src='#{libRoot}/jquery.min.js')
+        script(src='#{npmRoot}/jquery/dist/jquery.min.js')
 
         block head_end
     body

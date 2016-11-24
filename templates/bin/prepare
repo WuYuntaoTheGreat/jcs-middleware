@@ -1,5 +1,53 @@
 #!/usr/bin/env node
 // vim: set ai et nu ts=4 sw=4 cc=100 ft=javascript:
-require('../app').get('jcs-middleware').prepare();
+// require('../app').get('jcs-middleware').prepare();
+require('coffee-script/register');
 
+// FIXME: Should put jcs-middleware prepare function after copying client package?
+require('../jcs').prepare();
+
+// Following codes read client side npm packages, designated by script file 
+// "client_packages.coffee" at the root directory, and copy their main script files
+// from "./node_modules" directory to ./public/npm directory.
+// I stop using bower to load cliend side packages because I have problem accessing
+// bower repository. This is a semi-manual solution for that.
+var path    = require('path')
+  , fs      = require('fs')
+  , mkdirp  = require('mkdirp')
+  ;
+
+(function(list){
+    for(var i = 0; i < list.length; i++){
+        var line = list[i];
+        var pkgRoot, _pkg;
+
+		// If the line contains no '/' char, read it's "package.json" file, and
+		// use the property "main" in that json file as the script file path.
+		// Else, use the whole line as full path to the script file.
+        if(!line.match(/\//)){
+            pkgRoot = path.join('node_modules', line);
+            // NOTE: require uses path related to script, 
+            _pkg = require(".." + path.sep + path.join(pkgRoot, 'package.json'));
+            line = line + "/" + _pkg.main;
+        }
+
+		// Replace heading '/', replace all '/' chars with system pathe separator.
+        line = line.replace(/^\//, '').replace('/', path.sep);
+
+        // NOTE: copying uses path related to PWD.
+        var src = path.join('node_modules', line);
+        var dst = path.join('public', 'npm', line);
+
+        console.log(src + " => " + dst);
+		// Copying file.
+        try {
+            mkdirp.sync(path.dirname(dst));
+            srcFile = fs.createReadStream(src);
+            dstFile = fs.createWriteStream(dst);
+            srcFile.pipe(dstFile);
+        } catch(e){
+            console.error(e);
+        }
+    }
+})(require('../client_packages'));
 

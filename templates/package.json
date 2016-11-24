@@ -13,8 +13,16 @@
         "morgan": "~1.3.0",
         "debug": "~2.0.0",
         "coffee-script": "~1.8.0",
+        "jquery": "^2.2.3",
         "jade": "~1.7.0",
         "jcs-middleware": "*"
+    },
+    "devDependencies": {
+        "coffeelint": "^1.15.7",
+        "jade-lint": "^2.1.0",
+        "mkdirp": "^0.5.1",
+        "stylint": "^1.3.10"
     }
+
 }
 
